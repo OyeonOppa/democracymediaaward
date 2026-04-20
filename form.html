@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบฟอร์มสมัครโครงการประกวดสื่อเพื่อสร้างสำนึกประชาธิปไตย</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .form-content {
+            padding: 40px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #667eea;
+            margin: 30px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .required {
+            color: #dc3545;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="number"],
+        input[type="file"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="tel"]:focus,
+        input[type="date"]:focus,
+        input[type="number"]:focus,
+        input[type="file"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .criteria-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+
+        .criteria-box h3 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .criteria-box ul {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        .criteria-box li {
+            margin-bottom: 8px;
+        }
+
+        .team-member {
+            background: #f9f9f9;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .member-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .member-header h4 {
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+
+        .btn-remove:hover {
+            background: #c82333;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin: 30px 0;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-add-member {
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            margin: 20px 0;
+        }
+
+        .btn-add-member:hover {
+            background: #218838;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .file-size-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .form-row,
+            .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .form-content {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 แบบฟอร์มสมัครโครงการประกวดสื่อ</h1>
+            <p>เพื่อสร้างสำนึกประชาธิปไตย | โครงการเสริมสร้างการรับรู้ของสถาบันพระปกเกล้าต่อสาธารณะชน ปีงบประมาณ พ.ศ. 2569</p>
+        </div>
+
+        <div class="form-content">
+            <div class="criteria-box">
+                <h3>✓ เกณฑ์การพิจารณาคุณสมบัติ</h3>
+                <ul>
+                    <li>นักเรียนระดับมัธยมศึกษาตอนปลาย หรือ ระดับประกาศนียบัตรวิชาชีพ (ปวช.)</li>
+                    <li>อายุ 14-18 ปี (ไม่ต่ำกว่า 14 ปี และไม่เกิน 18 ปี)</li>
+                    <li>ส่งผลงานเป็นทีมเท่านั้น ทีมละ 4-6 คน</li>
+                    <li>รูปแบบสื่อ: ภาพยนตร์สั้น ความยาว 3-5 นาที</li>
+                    <li>คุณภาพ: Full HD (1080p) ขึ้นไป | นามสกุล: .MP4</li>
+                </ul>
+            </div>
+
+            <form id="applicationForm" enctype="multipart/form-data">
+                <div class="success-message" id="successMessage">✓ ฟอร์มถูกส่งเรียบร้อยแล้ว</div>
+                <div class="error-message" id="errorMessage"></div>
+
+                <!-- ส่วนข้อมูลโรงเรียน -->
+                <div class="section-title">📚 ข้อมูลโรงเรียนและทีม</div>
+
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label for="school">โรงเรียน <span class="required">*</span></label>
+                        <input type="text" id="school" name="school" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="province">จังหวัด <span class="required">*</span></label>
+                        <input type="text" id="province" name="province" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="region">ภาค <span class="required">*</span></label>
+                        <select id="region" name="region" required>
+                            <option value="">-- เลือกภาค --</option>
+                            <option value="ภาคเหนือ">ภาคเหนือ</option>
+                            <option value="ภาคตะวันออกเฉียงเหนือ">ภาคตะวันออกเฉียงเหนือ</option>
+                            <option value="ภาคกลาง">ภาคกลาง</option>
+                            <option value="ภาคตะวันออก">ภาคตะวันออก</option>
+                            <option value="ภาคตะวันตก">ภาคตะวันตก</option>
+                            <option value="ภาคใต้">ภาคใต้</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="affiliation">สังกัด <span class="required">*</span></label>
+                        <input type="text" id="affiliation" name="affiliation" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="teamName">ชื่อทีม <span class="required">*</span></label>
+                        <input type="text" id="teamName" name="teamName" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="workTitle">ชื่อผลงาน <span class="required">*</span></label>
+                        <input type="text" id="workTitle" name="workTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="topic">หัวข้อที่เลือก <span class="required">*</span></label>
+                        <select id="topic" name="topic" required>
+                            <option value="">-- เลือกหัวข้อ --</option>
+                            <option value="ประชาธิปไตยและความเท่าเทียม">ประชาธิปไตยและความเท่าเทียม</option>
+                            <option value="สิทธิมนุษยชนและเสรีภาพ">สิทธิมนุษยชนและเสรีภาพ</option>
+                            <option value="การมีส่วนร่วมทางการเมือง">การมีส่วนร่วมทางการเมือง</option>
+                            <option value="การศึกษาเพื่อประชาธิปไตย">การศึกษาเพื่อประชาธิปไตย</option>
+                            <option value="อื่น ๆ">อื่น ๆ</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- ส่วนข้อมูลไฟล์ -->
+                <div class="section-title">🎬 ข้อมูลผลงาน</div>
+
+                <div class="form-group">
+                    <label for="videoLink">ลิงค์ Google Drive ของไฟล์ภาพยนตร์สั้น <span class="required">*</span></label>
+                    <input type="url" id="videoLink" name="videoLink" placeholder="https://drive.google.com/file/d/xxxx/view?usp=sharing" required>
+                    <div class="file-size-info">
+                        📌 กรุณา Share ลิงค์ Google Drive ที่สามารถเข้าชมได้ | ไฟล์ .MP4 | ความยาว 3-5 นาที | Full HD (1080p) ขึ้นไป
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="submissionDate">วันที่ส่งผลงาน <span class="required">*</span></label>
+                    <input type="date" id="submissionDate" name="submissionDate" required>
+                </div>
+
+                <!-- ส่วนข้อมูลสมาชิกทีม -->
+                <div class="section-title">👥 ข้อมูลสมาชิกทีม (4-6 คน)</div>
+                <p style="color: #666; margin-bottom: 20px; font-size: 14px;">
+                    ⚠️ ต้องมีสมาชิกทีมอย่างน้อย 4 คน และไม่เกิน 6 คน
+                </p>
+
+                <div id="membersContainer"></div>
+
+                <div style="text-align: center;">
+                    <button type="button" class="btn btn-add-member" id="addMemberBtn" onclick="addMember()">+ เพิ่มสมาชิกทีม</button>
+                </div>
+
+                <!-- ปุ่มส่งฟอร์ม -->
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">📤 ส่งใบสมัคร</button>
+                    <button type="reset" class="btn btn-secondary">🔄 ล้างข้อมูล</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let memberCount = 0;
+        const MAX_MEMBERS = 6;
+        const MIN_MEMBERS = 4;
+
+        function addMember() {
+            if (memberCount >= MAX_MEMBERS) {
+                alert(`⚠️ จำนวนสมาชิกไม่ควรเกิน ${MAX_MEMBERS} คน`);
+                return;
+            }
+
+            memberCount++;
+            const container = document.getElementById('membersContainer');
+
+            const memberHTML = `
+                <div class="team-member" id="member-${memberCount}">
+                    <div class="member-header">
+                        <h4>สมาชิกที่ ${memberCount}</h4>
+                        ${memberCount > MIN_MEMBERS ? `<button type="button" class="btn-remove" onclick="removeMember(${memberCount})">ลบ</button>` : ''}
+                    </div>
+
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>ลำดับ</label>
+                            <input type="number" value="${memberCount}" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label for="position-${memberCount}">ตำแหน่ง <span class="required">*</span></label>
+                            <select id="position-${memberCount}" name="position-${memberCount}" required>
+                                <option value="">-- เลือก --</option>
+                                <option value="ประธานทีม">ประธานทีม</option>
+                                <option value="รองประธาน">รองประธาน</option>
+                                <option value="สมาชิก">สมาชิก</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="prefix-${memberCount}">หน้าชื่อ <span class="required">*</span></label>
+                            <select id="prefix-${memberCount}" name="prefix-${memberCount}" required>
+                                <option value="">-- เลือก --</option>
+                                <option value="เด">เด</option>
+                                <option value="เด.ญ.">เด.ญ.</option>
+                                <option value="นาย">นาย</option>
+                                <option value="นางสาว">นางสาว</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fullname-${memberCount}">ชื่อ - นามสกุล <span class="required">*</span></label>
+                            <input type="text" id="fullname-${memberCount}" name="fullname-${memberCount}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="birthdate-${memberCount}">วัน/เดือน/ปี เกิด <span class="required">*</span></label>
+                            <input type="date" id="birthdate-${memberCount}" name="birthdate-${memberCount}" required onchange="calculateAge(${memberCount})">
+                        </div>
+                    </div>
+
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label for="age-${memberCount}">อายุ (ปี) <span class="required">*</span></label>
+                            <input type="number" id="age-${memberCount}" name="age-${memberCount}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="idcard-${memberCount}">เลขบัตรประชาชน <span class="required">*</span></label>
+                            <input type="text" id="idcard-${memberCount}" name="idcard-${memberCount}" placeholder="X-XXXX-XXXXX-XX-X" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="grade-${memberCount}">กำลังศึกษาชั้น <span class="required">*</span></label>
+                            <select id="grade-${memberCount}" name="grade-${memberCount}" required>
+                                <option value="">-- เลือก --</option>
+                                <option value="ม.4">ม.4</option>
+                                <option value="ม.5">ม.5</option>
+                                <option value="ม.6">ม.6</option>
+                                <option value="ปวช. ปีที่ 1">ปวช. ปีที่ 1</option>
+                                <option value="ปวช. ปีที่ 2">ปวช. ปีที่ 2</option>
+                                <option value="ปวช. ปีที่ 3">ปวช. ปีที่ 3</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address-${memberCount}">ที่อยู่ <span class="required">*</span></label>
+                        <textarea id="address-${memberCount}" name="address-${memberCount}" rows="2" required></textarea>
+                    </div>
+
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label for="phone-${memberCount}">โทรศัพท์ <span class="required">*</span></label>
+                            <input type="tel" id="phone-${memberCount}" name="phone-${memberCount}" placeholder="0X-XXXX-XXXX" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email-${memberCount}">อีเมล์ <span class="required">*</span></label>
+                            <input type="email" id="email-${memberCount}" name="email-${memberCount}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="line-${memberCount}">ไลน์</label>
+                            <input type="text" id="line-${memberCount}" name="line-${memberCount}">
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', memberHTML);
+            updateAddButtonState();
+        }
+
+        function removeMember(id) {
+            const member = document.getElementById(`member-${id}`);
+            if (member) {
+                member.remove();
+                memberCount--;
+                updateAddButtonState();
+            }
+        }
+
+        function updateAddButtonState() {
+            const addBtn = document.getElementById('addMemberBtn');
+            addBtn.disabled = memberCount >= MAX_MEMBERS;
+        }
+
+        function calculateAge(memberId) {
+            const birthdate = document.getElementById(`birthdate-${memberId}`).value;
+            if (!birthdate) return;
+
+            const birth = new Date(birthdate);
+            const today = new Date();
+            let age = today.getFullYear() - birth.getFullYear();
+            const monthDiff = today.getMonth() - birth.getMonth();
+
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                age--;
+            }
+
+            document.getElementById(`age-${memberId}`).value = age;
+        }
+
+        document.getElementById('applicationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            // ตรวจสอบจำนวนสมาชิก
+            if (memberCount < MIN_MEMBERS) {
+                errorDiv.textContent = `⚠️ ต้องมีสมาชิกทีมอย่างน้อย ${MIN_MEMBERS} คน (ปัจจุบัน: ${memberCount} คน)`;
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (memberCount > MAX_MEMBERS) {
+                errorDiv.textContent = `⚠️ จำนวนสมาชิกไม่ควรเกิน ${MAX_MEMBERS} คน`;
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            // ตรวจสอบอายุของสมาชิก
+            let isValidAge = true;
+            for (let i = 1; i <= memberCount; i++) {
+                const ageInput = document.getElementById(`age-${i}`);
+                const age = parseInt(ageInput.value);
+                if (age < 14 || age > 18) {
+                    isValidAge = false;
+                    errorDiv.textContent = `⚠️ สมาชิกที่ ${i} มีอายุ ${age} ปี (ต้องอยู่ระหว่าง 14-18 ปี)`;
+                    errorDiv.style.display = 'block';
+                    break;
+                }
+            }
+
+            if (!isValidAge) return;
+
+            // ตรวจสอบลิงค์ Google Drive
+            const videoLink = document.getElementById('videoLink').value.trim();
+            if (!videoLink.includes('drive.google.com')) {
+                errorDiv.textContent = '⚠️ กรุณาใส่ลิงค์ Google Drive ที่ถูกต้อง';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            // แสดงข้อความสำเร็จ
+            successDiv.style.display = 'block';
+
+            // ส่งข้อมูลไปยังเซิร์ฟเวอร์ (simulation)
+            console.log('ฟอร์มพร้อมส่ง!');
+
+            // รีเซ็ตฟอร์มหลังจาก 2 วินาที
+            setTimeout(() => {
+                // this.reset();
+                // memberCount = 0;
+                // document.getElementById('membersContainer').innerHTML = '';
+                // updateAddButtonState();
+            }, 2000);
+        });
+
+        // สร้างสมาชิกแรกอัตโนมัติ
+        window.addEventListener('load', function() {
+            addMember();
+            addMember();
+            addMember();
+            addMember();
+        });
+    </script>
+</body>
+</html>
