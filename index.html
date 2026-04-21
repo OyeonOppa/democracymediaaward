@@ -90,6 +90,7 @@
         input[type="tel"],
         input[type="date"],
         input[type="number"],
+        input[type="url"],
         input[type="file"],
         select,
         textarea {
@@ -107,6 +108,7 @@
         input[type="tel"]:focus,
         input[type="date"]:focus,
         input[type="number"]:focus,
+        input[type="url"]:focus,
         input[type="file"]:focus,
         select:focus,
         textarea:focus {
@@ -288,7 +290,7 @@
                 </ul>
             </div>
 
-            <form id="applicationForm" enctype="multipart/form-data">
+            <form id="applicationForm" novalidate>
                 <div class="success-message" id="successMessage">✓ ฟอร์มถูกส่งเรียบร้อยแล้ว</div>
                 <div class="error-message" id="errorMessage"></div>
 
@@ -329,40 +331,6 @@
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="workTitle">ชื่อผลงาน <span class="required">*</span></label>
-                        <input type="text" id="workTitle" name="workTitle" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="topic">หัวข้อที่เลือก <span class="required">*</span></label>
-                        <select id="topic" name="topic" required>
-                            <option value="">-- เลือกหัวข้อ --</option>
-                            <option value="ประชาธิปไตยและความเท่าเทียม">ประชาธิปไตยและความเท่าเทียม</option>
-                            <option value="สิทธิมนุษยชนและเสรีภาพ">สิทธิมนุษยชนและเสรีภาพ</option>
-                            <option value="การมีส่วนร่วมทางการเมือง">การมีส่วนร่วมทางการเมือง</option>
-                            <option value="การศึกษาเพื่อประชาธิปไตย">การศึกษาเพื่อประชาธิปไตย</option>
-                            <option value="อื่น ๆ">อื่น ๆ</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- ส่วนข้อมูลไฟล์ -->
-                <div class="section-title">🎬 ข้อมูลผลงาน</div>
-
-                <div class="form-group">
-                    <label for="videoLink">ลิงค์ Google Drive ของไฟล์ภาพยนตร์สั้น <span class="required">*</span></label>
-                    <input type="url" id="videoLink" name="videoLink" placeholder="https://drive.google.com/file/d/xxxx/view?usp=sharing" required>
-                    <div class="file-size-info">
-                        📌 กรุณา Share ลิงค์ Google Drive ที่สามารถเข้าชมได้ | ไฟล์ .MP4 | ความยาว 3-5 นาที | Full HD (1080p) ขึ้นไป
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="submissionDate">วันที่ส่งผลงาน <span class="required">*</span></label>
-                    <input type="date" id="submissionDate" name="submissionDate" required>
-                </div>
-
                 <!-- ส่วนข้อมูลสมาชิกทีม -->
                 <div class="section-title">👥 ข้อมูลสมาชิกทีม (4-6 คน)</div>
                 <p style="color: #666; margin-bottom: 20px; font-size: 14px;">
@@ -385,34 +353,71 @@
     </div>
 
     <script>
-        let memberCount = 0;
+        // 👉 วาง URL ของ Google Apps Script Web App ตรงนี้ หลัง Deploy แล้ว
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxe8GaM0LAv48U9JNKfNA58Lo9lmeCX_PSm1Ogz_0ZOHSYhd8MaZdxqmLDkp17x6YMx/exec';
+
+
+
         const MAX_MEMBERS = 6;
         const MIN_MEMBERS = 4;
+        let memberCount = 0;
+
+        // ---- Format helpers ----
+        function formatPhone(input) {
+            let digits = input.value.replace(/\D/g, '').slice(0, 10);
+            if (digits.length <= 3) {
+                input.value = digits;
+            } else if (digits.length <= 6) {
+                input.value = digits.slice(0,3) + '-' + digits.slice(3);
+            } else {
+                input.value = digits.slice(0,3) + '-' + digits.slice(3,6) + '-' + digits.slice(6);
+            }
+        }
+
+        function formatIdCard(input) {
+            let digits = input.value.replace(/\D/g, '').slice(0, 13);
+            let out = '';
+            if (digits.length > 0)  out += digits.slice(0,1);
+            if (digits.length > 1)  out += '-' + digits.slice(1,5);
+            if (digits.length > 5)  out += '-' + digits.slice(5,10);
+            if (digits.length > 10) out += '-' + digits.slice(10,12);
+            if (digits.length > 12) out += '-' + digits.slice(12,13);
+            input.value = out;
+        }
+
+        // ---- Member management ----
+        // ใช้ Set เก็บ id จริงที่มีอยู่ เพื่อป้องกัน bug removeMember
+        const memberIds = new Set();
+        let memberSeq = 0;
 
         function addMember() {
-            if (memberCount >= MAX_MEMBERS) {
+            if (memberIds.size >= MAX_MEMBERS) {
                 alert(`⚠️ จำนวนสมาชิกไม่ควรเกิน ${MAX_MEMBERS} คน`);
                 return;
             }
+            memberSeq++;
+            const id = memberSeq;
+            memberIds.add(id);
+            memberCount = memberIds.size;
 
-            memberCount++;
             const container = document.getElementById('membersContainer');
+            const seq = memberIds.size; // ลำดับแสดงผล
 
             const memberHTML = `
-                <div class="team-member" id="member-${memberCount}">
+                <div class="team-member" id="member-${id}">
                     <div class="member-header">
-                        <h4>สมาชิกที่ ${memberCount}</h4>
-                        ${memberCount > MIN_MEMBERS ? `<button type="button" class="btn-remove" onclick="removeMember(${memberCount})">ลบ</button>` : ''}
+                        <h4 id="member-label-${id}">สมาชิกที่ ${seq}</h4>
+                        ${memberIds.size > MIN_MEMBERS ? `<button type="button" class="btn-remove" onclick="removeMember(${id})">ลบ</button>` : ''}
                     </div>
 
                     <div class="form-row-3">
                         <div class="form-group">
                             <label>ลำดับ</label>
-                            <input type="number" value="${memberCount}" disabled>
+                            <input type="text" id="seq-${id}" value="${seq}" disabled style="background:#f5f5f5;">
                         </div>
                         <div class="form-group">
-                            <label for="position-${memberCount}">ตำแหน่ง <span class="required">*</span></label>
-                            <select id="position-${memberCount}" name="position-${memberCount}" required>
+                            <label for="position-${id}">ตำแหน่ง <span class="required">*</span></label>
+                            <select id="position-${id}" name="position-${id}">
                                 <option value="">-- เลือก --</option>
                                 <option value="ประธานทีม">ประธานทีม</option>
                                 <option value="รองประธาน">รองประธาน</option>
@@ -420,11 +425,11 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="prefix-${memberCount}">หน้าชื่อ <span class="required">*</span></label>
-                            <select id="prefix-${memberCount}" name="prefix-${memberCount}" required>
+                            <label for="prefix-${id}">คำนำหน้าชื่อ <span class="required">*</span></label>
+                            <select id="prefix-${id}" name="prefix-${id}">
                                 <option value="">-- เลือก --</option>
-                                <option value="เด">เด</option>
-                                <option value="เด.ญ.">เด.ญ.</option>
+                                <option value="เด็กชาย">เด็กชาย</option>
+                                <option value="เด็กหญิง">เด็กหญิง</option>
                                 <option value="นาย">นาย</option>
                                 <option value="นางสาว">นางสาว</option>
                             </select>
@@ -433,27 +438,30 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="fullname-${memberCount}">ชื่อ - นามสกุล <span class="required">*</span></label>
-                            <input type="text" id="fullname-${memberCount}" name="fullname-${memberCount}" required>
+                            <label for="fullname-${id}">ชื่อ - นามสกุล <span class="required">*</span></label>
+                            <input type="text" id="fullname-${id}" name="fullname-${id}">
                         </div>
                         <div class="form-group">
-                            <label for="birthdate-${memberCount}">วัน/เดือน/ปี เกิด <span class="required">*</span></label>
-                            <input type="date" id="birthdate-${memberCount}" name="birthdate-${memberCount}" required onchange="calculateAge(${memberCount})">
+                            <label for="birthdate-${id}">วัน/เดือน/ปี เกิด <span class="required">*</span></label>
+                            <input type="date" id="birthdate-${id}" name="birthdate-${id}" onchange="calculateAge(${id})">
                         </div>
                     </div>
 
                     <div class="form-row-3">
                         <div class="form-group">
-                            <label for="age-${memberCount}">อายุ (ปี) <span class="required">*</span></label>
-                            <input type="number" id="age-${memberCount}" name="age-${memberCount}" readonly>
+                            <label>อายุ (ปี)</label>
+                            <input type="text" id="age-${id}" name="age-${id}" readonly placeholder="คำนวณจากวันเกิด" style="background:#f5f5f5; color:#555;">
                         </div>
                         <div class="form-group">
-                            <label for="idcard-${memberCount}">เลขบัตรประชาชน <span class="required">*</span></label>
-                            <input type="text" id="idcard-${memberCount}" name="idcard-${memberCount}" placeholder="X-XXXX-XXXXX-XX-X" required>
+                            <label for="idcard-${id}">เลขบัตรประชาชน <span class="required">*</span></label>
+                            <input type="text" id="idcard-${id}" name="idcard-${id}"
+                                placeholder="X-XXXX-XXXXX-XX-X" inputmode="numeric" maxlength="17"
+                                oninput="formatIdCard(this)">
+                            <small style="color:#888;">กรอกตัวเลข 13 หลัก</small>
                         </div>
                         <div class="form-group">
-                            <label for="grade-${memberCount}">กำลังศึกษาชั้น <span class="required">*</span></label>
-                            <select id="grade-${memberCount}" name="grade-${memberCount}" required>
+                            <label for="grade-${id}">กำลังศึกษาชั้น <span class="required">*</span></label>
+                            <select id="grade-${id}" name="grade-${id}">
                                 <option value="">-- เลือก --</option>
                                 <option value="ม.4">ม.4</option>
                                 <option value="ม.5">ม.5</option>
@@ -466,22 +474,25 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="address-${memberCount}">ที่อยู่ <span class="required">*</span></label>
-                        <textarea id="address-${memberCount}" name="address-${memberCount}" rows="2" required></textarea>
+                        <label for="address-${id}">ที่อยู่ <span class="required">*</span></label>
+                        <textarea id="address-${id}" name="address-${id}" rows="2"></textarea>
                     </div>
 
                     <div class="form-row-3">
                         <div class="form-group">
-                            <label for="phone-${memberCount}">โทรศัพท์ <span class="required">*</span></label>
-                            <input type="tel" id="phone-${memberCount}" name="phone-${memberCount}" placeholder="0X-XXXX-XXXX" required>
+                            <label for="phone-${id}">โทรศัพท์ <span class="required">*</span></label>
+                            <input type="text" id="phone-${id}" name="phone-${id}"
+                                placeholder="0XX-XXX-XXXX" inputmode="numeric" maxlength="12"
+                                oninput="formatPhone(this)">
+                            <small style="color:#888;">กรอกตัวเลข 10 หลัก</small>
                         </div>
                         <div class="form-group">
-                            <label for="email-${memberCount}">อีเมล์ <span class="required">*</span></label>
-                            <input type="email" id="email-${memberCount}" name="email-${memberCount}" required>
+                            <label for="email-${id}">อีเมล์ <span class="required">*</span></label>
+                            <input type="email" id="email-${id}" name="email-${id}">
                         </div>
                         <div class="form-group">
-                            <label for="line-${memberCount}">ไลน์</label>
-                            <input type="text" id="line-${memberCount}" name="line-${memberCount}">
+                            <label for="line-${id}">ไลน์</label>
+                            <input type="text" id="line-${id}" name="line-${id}">
                         </div>
                     </div>
                 </div>
@@ -489,104 +500,168 @@
 
             container.insertAdjacentHTML('beforeend', memberHTML);
             updateAddButtonState();
+            renumberMembers();
         }
 
         function removeMember(id) {
             const member = document.getElementById(`member-${id}`);
             if (member) {
                 member.remove();
-                memberCount--;
+                memberIds.delete(id);
+                memberCount = memberIds.size;
                 updateAddButtonState();
+                renumberMembers();
             }
+        }
+
+        function renumberMembers() {
+            // อัปเดตเลขลำดับแสดงผลใหม่หลังเพิ่ม/ลบ
+            let seq = 1;
+            memberIds.forEach(id => {
+                const label = document.getElementById(`member-label-${id}`);
+                const seqInput = document.getElementById(`seq-${id}`);
+                if (label) label.textContent = `สมาชิกที่ ${seq}`;
+                if (seqInput) seqInput.value = seq;
+                seq++;
+            });
         }
 
         function updateAddButtonState() {
             const addBtn = document.getElementById('addMemberBtn');
-            addBtn.disabled = memberCount >= MAX_MEMBERS;
+            addBtn.disabled = memberIds.size >= MAX_MEMBERS;
         }
 
         function calculateAge(memberId) {
             const birthdate = document.getElementById(`birthdate-${memberId}`).value;
             if (!birthdate) return;
-
             const birth = new Date(birthdate);
             const today = new Date();
             let age = today.getFullYear() - birth.getFullYear();
-            const monthDiff = today.getMonth() - birth.getMonth();
-
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-                age--;
-            }
-
+            const m = today.getMonth() - birth.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
             document.getElementById(`age-${memberId}`).value = age;
         }
 
+        // ---- Validation helper ----
+        function showError(msg) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = msg;
+            errorDiv.style.display = 'block';
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function getVal(id) {
+            return (document.getElementById(id)?.value || '').trim();
+        }
+
+        // ---- Submit ----
         document.getElementById('applicationForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const errorDiv = document.getElementById('errorMessage');
-            const successDiv = document.getElementById('successMessage');
-
-            errorDiv.style.display = 'none';
-            successDiv.style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
 
             // ตรวจสอบจำนวนสมาชิก
-            if (memberCount < MIN_MEMBERS) {
-                errorDiv.textContent = `⚠️ ต้องมีสมาชิกทีมอย่างน้อย ${MIN_MEMBERS} คน (ปัจจุบัน: ${memberCount} คน)`;
-                errorDiv.style.display = 'block';
-                return;
+            const count = memberIds.size;
+            if (count < MIN_MEMBERS) {
+                return showError(`⚠️ ต้องมีสมาชิกทีมอย่างน้อย ${MIN_MEMBERS} คน (ปัจจุบัน: ${count} คน)`);
+            }
+            if (count > MAX_MEMBERS) {
+                return showError(`⚠️ จำนวนสมาชิกไม่เกิน ${MAX_MEMBERS} คน`);
             }
 
-            if (memberCount > MAX_MEMBERS) {
-                errorDiv.textContent = `⚠️ จำนวนสมาชิกไม่ควรเกิน ${MAX_MEMBERS} คน`;
-                errorDiv.style.display = 'block';
-                return;
+            // ตรวจสอบฟิลด์ส่วนทีม
+            if (!getVal('school'))       return showError('⚠️ กรุณากรอกชื่อโรงเรียน');
+            if (!getVal('province'))     return showError('⚠️ กรุณากรอกจังหวัด');
+            if (!getVal('region'))       return showError('⚠️ กรุณาเลือกภาค');
+            if (!getVal('affiliation'))  return showError('⚠️ กรุณากรอกสังกัด');
+            if (!getVal('teamName'))     return showError('⚠️ กรุณากรอกชื่อทีม');
+
+            // ตรวจสอบสมาชิกแต่ละคน
+            const members = [];
+            let seq = 1;
+            for (const id of memberIds) {
+                const age = parseInt(getVal(`age-${id}`));
+                const idcard = getVal(`idcard-${id}`).replace(/-/g, '');
+                const phone  = getVal(`phone-${id}`).replace(/-/g, '');
+                const email  = getVal(`email-${id}`);
+
+                if (!getVal(`position-${id}`)) return showError(`⚠️ สมาชิกที่ ${seq}: กรุณาเลือกตำแหน่ง`);
+                if (!getVal(`prefix-${id}`))   return showError(`⚠️ สมาชิกที่ ${seq}: กรุณาเลือกคำนำหน้าชื่อ`);
+                if (!getVal(`fullname-${id}`)) return showError(`⚠️ สมาชิกที่ ${seq}: กรุณากรอกชื่อ-นามสกุล`);
+                if (!getVal(`birthdate-${id}`))return showError(`⚠️ สมาชิกที่ ${seq}: กรุณาระบุวันเกิด`);
+                if (isNaN(age))                return showError(`⚠️ สมาชิกที่ ${seq}: ไม่พบอายุ กรุณาเลือกวันเกิดใหม่`);
+                if (age < 14 || age > 18)      return showError(`⚠️ สมาชิกที่ ${seq}: อายุ ${age} ปี ต้องอยู่ระหว่าง 14-18 ปี`);
+                if (idcard.length !== 13)      return showError(`⚠️ สมาชิกที่ ${seq}: เลขบัตรประชาชนต้องมี 13 หลัก`);
+                if (!getVal(`grade-${id}`))    return showError(`⚠️ สมาชิกที่ ${seq}: กรุณาเลือกชั้นที่กำลังศึกษา`);
+                if (!getVal(`address-${id}`))  return showError(`⚠️ สมาชิกที่ ${seq}: กรุณากรอกที่อยู่`);
+                if (phone.length !== 10)       return showError(`⚠️ สมาชิกที่ ${seq}: เบอร์โทรศัพท์ต้องมี 10 หลัก`);
+                if (!email || !email.includes('@')) return showError(`⚠️ สมาชิกที่ ${seq}: กรุณากรอกอีเมล์ให้ถูกต้อง`);
+
+                members.push({
+                    position:  getVal(`position-${id}`),
+                    prefix:    getVal(`prefix-${id}`),
+                    fullname:  getVal(`fullname-${id}`),
+                    birthdate: getVal(`birthdate-${id}`),
+                    age,
+                    idcard:    getVal(`idcard-${id}`),
+                    grade:     getVal(`grade-${id}`),
+                    address:   getVal(`address-${id}`),
+                    phone:     getVal(`phone-${id}`),
+                    email,
+                    line:      getVal(`line-${id}`),
+                });
+                seq++;
             }
 
-            // ตรวจสอบอายุของสมาชิก
-            let isValidAge = true;
-            for (let i = 1; i <= memberCount; i++) {
-                const ageInput = document.getElementById(`age-${i}`);
-                const age = parseInt(ageInput.value);
-                if (age < 14 || age > 18) {
-                    isValidAge = false;
-                    errorDiv.textContent = `⚠️ สมาชิกที่ ${i} มีอายุ ${age} ปี (ต้องอยู่ระหว่าง 14-18 ปี)`;
-                    errorDiv.style.display = 'block';
-                    break;
+            const payload = {
+                school:        getVal('school'),
+                province:      getVal('province'),
+                region:        getVal('region'),
+                affiliation:   getVal('affiliation'),
+                teamName:      getVal('teamName'),
+                submissionDate: new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }),
+                members,
+            };
+
+            const submitBtn = document.querySelector('.btn-primary');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ กำลังส่ง...';
+
+            fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                redirect: 'follow',
+                body: JSON.stringify(payload),
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.status === 'success') {
+                    const successDiv = document.getElementById('successMessage');
+                    successDiv.textContent = '✅ ส่งใบสมัครเรียบร้อยแล้ว ขอบคุณที่ร่วมสมัคร!';
+                    successDiv.style.display = 'block';
+                    successDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    document.getElementById('applicationForm').reset();
+                    document.getElementById('membersContainer').innerHTML = '';
+                    memberIds.clear();
+                    memberSeq = 0;
+                    memberCount = 0;
+                    addMember(); addMember(); addMember(); addMember();
+                } else {
+                    throw new Error(result.message || 'เกิดข้อผิดพลาด');
                 }
-            }
-
-            if (!isValidAge) return;
-
-            // ตรวจสอบลิงค์ Google Drive
-            const videoLink = document.getElementById('videoLink').value.trim();
-            if (!videoLink.includes('drive.google.com')) {
-                errorDiv.textContent = '⚠️ กรุณาใส่ลิงค์ Google Drive ที่ถูกต้อง';
-                errorDiv.style.display = 'block';
-                return;
-            }
-
-            // แสดงข้อความสำเร็จ
-            successDiv.style.display = 'block';
-
-            // ส่งข้อมูลไปยังเซิร์ฟเวอร์ (simulation)
-            console.log('ฟอร์มพร้อมส่ง!');
-
-            // รีเซ็ตฟอร์มหลังจาก 2 วินาที
-            setTimeout(() => {
-                // this.reset();
-                // memberCount = 0;
-                // document.getElementById('membersContainer').innerHTML = '';
-                // updateAddButtonState();
-            }, 2000);
+            })
+            .catch(err => {
+                showError(`⚠️ ไม่สามารถส่งข้อมูลได้: ${err.message}`);
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '📤 ส่งใบสมัคร';
+            });
         });
 
-        // สร้างสมาชิกแรกอัตโนมัติ
+        // สร้างสมาชิกแรกอัตโนมัติ 4 คน
         window.addEventListener('load', function() {
-            addMember();
-            addMember();
-            addMember();
-            addMember();
+            addMember(); addMember(); addMember(); addMember();
         });
     </script>
 </body>
